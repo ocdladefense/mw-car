@@ -17,8 +17,5 @@ class SpecialCaseReviews extends SpecialPage {
     }
 
 
-    public function execute($parameter) {
-
-        var_dump("Hello from execute");exit;
-    }
+    public function execute($parameter) {}
 }

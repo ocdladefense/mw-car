@@ -1,6 +1,6 @@
 <?php
 
-class CaseReviews {
+class PlaceHolder {
 	
 	public function __construct(){}
 	

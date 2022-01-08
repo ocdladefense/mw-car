@@ -3,13 +3,12 @@
 if (!defined("MEDIAWIKI")) die();
 
 
-final class CaseReviewHooks {
+class CaseReviewHooks {
 	
 	public static function onBeforePageDisplay(OutputPage &$out, Skin &$skin ) {
-		
+
+		//$out->addModules("ext.caseReviews");
+
 		return true;
 	}
-
-
-	public static function setup() {}
 }
