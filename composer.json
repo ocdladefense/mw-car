@@ -7,6 +7,7 @@
         }
     },
     "require": {
+        "ocdladefense/lib-database":"dev-development",
         "ocdladefense/lib-oauth-config": "~2.0",
         "ocdladefense/lib-salesforce-rest-api":"~3.0",
         "ocdladefense/lib-http":"~3.0"
