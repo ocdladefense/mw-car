@@ -1,0 +1,13 @@
+/*
+ * CaseReviews extension styles
+*/
+
+div.cr-summary-header {
+	margin-top:-.9em;
+	font-size: 90%;
+	font-style: italic;
+}
+
+br {
+	display:none;
+}
