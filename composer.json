@@ -1,6 +1,7 @@
 {
     "name": "ocdladefense/mw-car",
     "type": "wordpress-theme",
+    "description": "A MediaWiki extension for showing recently published case reviews",
     "config": {
         "preferred-install": {
             "ocdladefense/*": "source"
