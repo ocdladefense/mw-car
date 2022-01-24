@@ -7,6 +7,9 @@ class SpecialCaseReviews extends SpecialPage {
 
 	private $numRows;
 
+
+
+	
     public function __construct() {
 
         parent::__construct("CaseReviews");
@@ -70,24 +73,9 @@ class SpecialCaseReviews extends SpecialPage {
 		
 		$template = __DIR__ . "/templates/case-reviews.tpl.php";
 
-		return $this->getHTMLFromTemplate($template, $params);
+		return \Ocdla\View::renderTemplate($template, $params);
 	}
 
-
-	public function getHTMLFromTemplate($template, $params) {
-
-		extract($params);
-
-		ob_start();
-
-		require $template;
-		
-		$content = ob_get_contents();
-
-		ob_end_clean();
-		
-		return $content;
-	}
 
 
 	public function getTitleFromUrl($url){
