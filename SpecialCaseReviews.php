@@ -1,7 +1,7 @@
 <?php
 
 use function Mysql\select;
-use function \Ocdla\View\renderTemplate;
+use Ocdla\View;
 
 
 class SpecialCaseReviews extends SpecialPage {
@@ -31,9 +31,8 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$html = $this->getHTML($days);
 
+		// The syntax for this will be "$this->getOutput()" in later versions.
 		$wgOut->addHTML($html);
-
-		var_dump($days);exit;
     }
 
 
@@ -44,15 +43,12 @@ class SpecialCaseReviews extends SpecialPage {
 		// Assumes results are already sorted DESC by year, month, and day, so array will start with most recent cars.
 		foreach($cars as $car){
 
-			// Organize car cases by date; @TODO AND court!
 			// Normally we can accept 2021-11-04 but could we try 2021-11-4 (our database doesn't store leading zeros)?
 			$key = new DateTime($car["year"] ."-". $car["month"] ."-". $car["day"]);
-			$key = $key->format("F, d, Y");
-			$court = $car["court"];
 
-			$keyString = $court .", ". $key;
+			$key = $key->format("F j, Y");
 
-			$days[$keyString][] = $car;
+			$days[$key][] = $car;
 		}
 
 		return $days;
@@ -65,21 +61,22 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
 		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
+
+		$html = "";
 		
 		// Opening container tags
 		$html .= "<div class='car-wrapper'>";
 		$html .= "<div class='car-roll'>";
 
 
-		foreach($days as $title => $cars){
+		foreach($days as $decisionDate => $cars){
 
-			$params = $this->preProcess($title, $cars);
+			$params = $this->preProcess($decisionDate, $cars);
 
-			$subjects = $this->renderTemplate($subjectTemplate, $params);
+			$params["subjectHTML"] = View::renderTemplate($subjectTemplate, $params);
 
-			var_dump($subjects);exit;
+			$html .= View::renderTemplate($summaryTemplate, $params);
 		}
-
 
 		// Closing containser tags
 		$html .= "</div></div>";
@@ -87,13 +84,35 @@ class SpecialCaseReviews extends SpecialPage {
 		return $html;
 	}
 
-	public function preProcess($title, $cars){
+	public function preProcess($decisionDate, $cars){
 
+		global $wgOcdlaAppCarSummaryURL, $wgOcdlaCaseReviewAuthor, $wgScriptPath;
+
+		$year = $cars[0]["year"];
+		$month = $cars[0]["month"];
+		$day = $cars[0]["day"];
+		$court = $cars[0]["court"];
+		$title = "$court, $decisionDate";
 		$subjects = $this->getSubjects($cars);
 
+		// Build the published date.
+		$publishDate = $cars[0]["createtime"];
+		$publishDate = new DateTime($publishDate);
+		$publishDate = $publishDate->format("l, F jS, Y");
+
+		// Build the url for the comments page.
+		$resource = str_replace(" ", "_", $title);
+		$commentsURL = "$wgScriptPath/Blog_talk:Case_Reviews/$resource";
+
+
 		$data = array(
-			"firstSubject" => array_shift($data["subjects"]),
-			"subjects"	   => $subjects
+			"firstSubject" => array_shift($subjects),
+			"subjects"	   => $subjects,
+			"title"		   => $title,
+			"author"	   => $wgOcdlaCaseReviewAuthor,
+			"commentsURL"  => $commentsURL,
+			"publishDate"  => $publishDate,
+			"appURL"	   => "$wgOcdlaAppCarSummaryURL?year=$year&month=$month&day=$day&court=$court&summarize=1"
 		);
 
 		return $data;
@@ -110,20 +129,4 @@ class SpecialCaseReviews extends SpecialPage {
 
 		return $subjects;
 	}
-
-	public function renderTemplate($template, $params) {
-
-		extract($params);
-
-		ob_start();
-
-		require $template;
-		
-		$content = ob_get_contents();
-
-		ob_end_clean();
-		
-		return $content;
-	}
-
 }
