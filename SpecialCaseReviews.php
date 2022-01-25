@@ -55,14 +55,36 @@ class SpecialCaseReviews extends SpecialPage {
     }
 
 
-	public function preprocess($cars){
 
+
+	public function preprocess($cars) {
+
+		global $wgScriptPath, $wgOcdlaCaseReviewAuthor, $wgOcdlaAppCarSummaryURL;
+
+		$wgOcdlaAppCarSummaryURL = "https://ocdla.app";
+		
 		$days = array();
 
 
+
+		
+
+		$index = 0;
+
 		// Assumes results are already sorted DESC by year, month, day
 		// so array will start with most recent cars.
-		foreach($cars as $car){
+		foreach($cars as $car) {
+
+			$index++;
+
+			$year = $car["year"];
+			$month = $car["month"];
+			$day = $car["day"];
+
+
+			// A URL only needs to be encoded if trying to access a url outside of MediaWiki install????
+			$appUrl = "$wgOcdlaAppCarSummaryURL?year=$year&month=$month&day=$day&court=$court&summarize=1";
+
 
 			// Organize car cases by date; @TODO AND court!
 			// Normally we can accept 2021-11-04 but could we try 2021-11-4 (our database doesn't store leading zeros)?
@@ -79,28 +101,5 @@ class SpecialCaseReviews extends SpecialPage {
 	}
 
 
-	public function getHTML($grouped) {
 
-		global $wgScriptPath, $wgOcdlaCaseReviewAuthor;
-
-		$limit = !empty($this->numRows) ? $this->numRows : count($grouped);
-
-		$params = array(
-			"grouped" => $grouped,
-			"limit" => $limit
-		);
-		
-		$template = __DIR__ . "/templates/case-reviews.tpl.php";
-
-		return \Ocdla\View::renderTemplate($template, $params);
-	}
-
-
-
-	public function getTitleFromUrl($url){
-
-		$urlParts = explode("/", $url);
-
-		return $urlParts[count($urlParts) -1];
-	}
 }
