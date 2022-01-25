@@ -1,12 +1,14 @@
 <?php
 
 use function Mysql\select;
+use Ocdla\View;
 
 
 class SpecialCaseReviews extends SpecialPage {
 
 	private $numRows;
 
+	
     public function __construct() {
 
         parent::__construct("CaseReviews");
@@ -19,81 +21,94 @@ class SpecialCaseReviews extends SpecialPage {
 
     public function execute($numRows) {
 
-		$this->numRows = $numRows;
-
-        return $this->showCars();
-    }
-
-
-    public function showCars() {
-
 		global $wgOut;
 
-		$oldestDate = new DateTime();
-		$oldestDate->modify("-1month");
-
-		$query = "SELECT * FROM car WHERE CreateTime >= '" . $oldestDate->format('Y-m-d H:i:s') . "' ORDER BY Year DESC, Month DESC, Day DESC";
+		$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 		$cars = select($query);
 
-		$grouped = $this->getGrouped($cars);
+		$days = $this->group($cars);
 
-        $wgOut->addHTML($this->getHTML($grouped));
+		$html = $this->getHTML($days);
+
+		// The syntax for this will be "$this->getOutput()" in later MediaWiki versions.
+		$wgOut->addHTML($html);
     }
 
 
-	public function getGrouped($cars){
+	public function group($cars){
+		
+		$days = array();
 
-		$urls = array();
-
+		// Assumes results are already sorted DESC by year, month, and day, so array will start with most recent cars.
 		foreach($cars as $car){
 
-			$url = !empty($car->getUrl()) ? $car->getUrl() : $car->getCourt() . ", " . $car->getDate(true);
+			// Normally we can accept 2021-11-04 but could we try 2021-11-4 (our database doesn't store leading zeros)?
+			$key = implode("-", array($car["year"], $car["month"], $car["day"], $car["court"]));
 
-			$urls[$url][] = $car;
+			$days[$key][] = $car;
 		}
 
-		return $urls;
+		return $days;
 	}
 
 
-	public function getHTML($grouped) {
+	public function getHTML($days) {
 
-		global $wgScriptPath, $wgOcdlaCaseReviewAuthor;
+		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
+		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
 
-		$limit = !empty($this->numRows) ? $this->numRows : count($grouped);
+		$html = "";
+		
+		// Opening container tags
+		$html .= "<div class='car-wrapper'>";
+		$html .= "<div class='car-roll'>";
 
-		$params = array(
-			"grouped" => $grouped,
-			"limit" => $limit
+
+		foreach($days as $key => $cars){
+
+			$params = $this->preprocess($key, $cars);
+
+			$params["subjectsHTML"] = View::renderTemplate($subjectTemplate, $params);
+
+			$html .= View::renderTemplate($summaryTemplate, $params);
+		}
+
+		// Closing container tags
+		$html .= "</div></div>";
+
+		return $html;
+	}
+
+	public function preprocess($key, $cars){
+
+		global $wgOcdlaAppDomain, $wgOcdlaCaseReviewAuthor;
+
+		list($year, $month, $day, $court) = explode("-", $key);
+
+		$titleDate = new DateTime("$year-$month-$day");
+		$titleDate = $titleDate->format("F jS, Y");
+
+		$title = "$court, $titleDate";
+
+		// Build the published date.
+		$publishDate = $cars[0]["createtime"];
+		$publishDate = new DateTime($publishDate);
+		$publishDate = $publishDate->format("F jS, Y");
+
+
+		$data = array(
+			"title"		   => $title,
+			"publishDate"  => $publishDate,
+			"author"	   => $wgOcdlaCaseReviewAuthor,
+			"year"		   => $year,
+			"month"		   => $month,
+			"day"		   => $day,
+			"court"		   => $court,
+			"appDomain"	   => $wgOcdlaAppDomain,
+			"cars"		   => $cars
 		);
-		
-		$template = __DIR__ . "/templates/case-reviews.tpl.php";
 
-		return $this->getHTMLFromTemplate($template, $params);
-	}
-
-
-	public function getHTMLFromTemplate($template, $params) {
-
-		extract($params);
-
-		ob_start();
-
-		require $template;
-		
-		$content = ob_get_contents();
-
-		ob_end_clean();
-		
-		return $content;
-	}
-
-
-	public function getTitleFromUrl($url){
-
-		$urlParts = explode("/", $url);
-
-		return $urlParts[count($urlParts) -1];
+		return $data;
 	}
 }
