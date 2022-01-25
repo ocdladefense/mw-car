@@ -1,15 +1,14 @@
 <?php
 
 use function Mysql\select;
+use function \Ocdla\View\renderTemplate;
 
 
 class SpecialCaseReviews extends SpecialPage {
 
 	private $numRows;
 
-
-
-
+	
     public function __construct() {
 
         parent::__construct("CaseReviews");
@@ -22,85 +21,97 @@ class SpecialCaseReviews extends SpecialPage {
 
     public function execute($numRows) {
 
-
 		global $wgOut;
 
-		$template = __DIR__ . "/templates/case-reviews.tpl.php";
-		// $out = $this->getOutput();
+		$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
-
-		$query = "SELECT year, month, day, createtime, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}"; // court
-
-
-		// https://dev.mysql.com/doc/refman/8.0/en/aggregate-functions.html#function_group-concat
-		// SELECT LEFT(GROUP_CONCAT(subject_1), 40), year, month, day FROM car GROUP BY year, month, day ORDER BY year DESC, month DESC, day DESC LIMIT 50
-		// alter table car ADD createtime 
-		// ALTER TABLE car ADD createtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-
-		// SELECT COUNT(*) FROM car WHERE year=2021 AND month=11 AND day=24
-
-		// Do we have an option NOT to use a custom class.
 		$cars = select($query);
 
-		$data = $this->preprocess($cars);
+		$days = $this->group($cars);
 
-		$html = \Ocdla\View::renderTemplate($template, $params);
-		
-		$out->addHTML("<div class='car-wrapper'>");
-		$out->addHTML("<div class='car-roll'>");
+		$html = $this->getHTML($days);
 
-        $wgOut->addHTML($html);
+		$wgOut->addHTML($html);
 
-		$out->addHTML("</div></div>");
+		var_dump($days);exit;
     }
 
 
-	public function preprocess($cars){
+	public function group($cars){
 
 		$days = array();
 
-
-		// Assumes results are already sorted DESC by year, month, day
-		// so array will start with most recent cars.
+		// Assumes results are already sorted DESC by year, month, and day, so array will start with most recent cars.
 		foreach($cars as $car){
 
 			// Organize car cases by date; @TODO AND court!
 			// Normally we can accept 2021-11-04 but could we try 2021-11-4 (our database doesn't store leading zeros)?
-			// $key = new DateTime("2021-11-4");
-			$key = new DateTime($car["year"] ."-". $car["month"] ."-". $car["day"]); 
-			
-			$car["some-nice-formatted-date-value"] = "some new calculated or formatted value";
-			// $url = !empty($car->getUrl()) ? $car->getUrl() : $car->getCourt() . ", " . $car->getDate(true);
+			$key = new DateTime($car["year"] ."-". $car["month"] ."-". $car["day"]);
+			$key = $key->format("F, d, Y");
+			$court = $car["court"];
 
-			$days[$key][] = $car;
+			$keyString = $court .", ". $key;
+
+			$days[$keyString][] = $car;
 		}
 
 		return $days;
 	}
 
 
-	public function getHTML($grouped) {
+	public function getHTML($days) {
 
 		global $wgScriptPath, $wgOcdlaCaseReviewAuthor;
 
-		$limit = !empty($this->numRows) ? $this->numRows : count($grouped);
-
-		$params = array(
-			"grouped" => $grouped,
-			"limit" => $limit
-		);
+		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
 		
-		$template = __DIR__ . "/templates/case-reviews.tpl.php";
+		// Opening container tags
+		$html .= "<div class='car-wrapper'>";
+		$html .= "<div class='car-roll'>";
+
+
+		foreach($days as $title => $cars){
+
+			$data = $this->preProcess($title, $cars);
+
+			var_dump($data);exit;
+
+			$html .= renderTemplate($summaryTemplate, $data);
+		}
+
+
 
 		return \Ocdla\View::renderTemplate($template, $params);
+
+
+		// Closing containser tags
+		$html .= "</div></div>";
+
+		return $html;
 	}
 
+	public function preProcess($title, $cars){
 
+		$data = array();
 
-	public function getTitleFromUrl($url){
+		$data["subjects"] = $this->getSubjects($cars);
+ 
+		$data["firstSubject"] = array_shift($data["subjects"]);
 
-		$urlParts = explode("/", $url);
+		return $data;
+	}
 
-		return $urlParts[count($urlParts) -1];
+	public function getSubjects($cars){
+
+		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
+
+		$subjects = array();
+
+		foreach($cars as $car){
+
+			$subjects[] = $car["subject_1"] ." - ". $car["subject_2"];
+		}
+
+		return $subjects;
 	}
 }
