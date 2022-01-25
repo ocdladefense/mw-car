@@ -3,16 +3,17 @@
 ?>
 
 
-<div class="cr-entry">
+<div class="car-entry">
+
     <h2>
-        <a href="<?php print $appURL; ?>"><?php print $title; ?></a>
+        <a href="<?php print "$appDomain/car/list?year=$year&month=$month&day=$day&court=$court"; ?>"><?php print $title; ?></a>
     </h2>
-    <div class="cr-summary-header">
-        <p>by: <?php print $author . " &#8226; " . $publishDate . " &#8226; " ?><a href="<?php print $commentsURL; ?>">comments</a></p>
+    <div class="car-summary-header">
+        <p>by: <?php print $author . " &#8226; " . $publishDate?></p>
     </div>
 
-    <?php print $subjectHTML; ?>
+    <?php print $subjectsHTML; ?>
     
-    <p><a href="<?php print $appURL; ?>">&rarr; read the full summaries...</a></p>
+    <p><a href="<?php print "$appDomain/car/list?year=$year&month=$month&day=$day&court=$court"; ?>">&rarr; read the full summaries...</a></p>
 
 </div>

@@ -8,6 +8,17 @@
 ?>
 
 <div class="car-subjects">
-    <p><?php print $firstSubject; ?></p>
-    <p><?php print implode(", ", $subjects); ?></p>
+
+    <p>
+
+        <?php
+            $subjects = "";
+            
+            foreach($cars as $car) $subjects .= strtoupper($car["subject_1"]) . " - " . $car["subject_2"] . ", ";
+
+            print trim($subjects, ", ");
+        ?>
+
+    </p>
+
 </div>

@@ -31,7 +31,7 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$html = $this->getHTML($days);
 
-		// The syntax for this will be "$this->getOutput()" in later versions.
+		// The syntax for this will be "$this->getOutput()" in later MediaWiki versions.
 		$wgOut->addHTML($html);
     }
 
@@ -44,9 +44,7 @@ class SpecialCaseReviews extends SpecialPage {
 		foreach($cars as $car){
 
 			// Normally we can accept 2021-11-04 but could we try 2021-11-4 (our database doesn't store leading zeros)?
-			$key = new DateTime($car["year"] ."-". $car["month"] ."-". $car["day"]);
-
-			$key = $key->format("F j, Y");
+			$key = implode("-", array($car["year"], $car["month"], $car["day"], $car["court"]));
 
 			$days[$key][] = $car;
 		}
@@ -56,8 +54,6 @@ class SpecialCaseReviews extends SpecialPage {
 
 
 	public function getHTML($days) {
-
-		global $wgScriptPath, $wgOcdlaCaseReviewAuthor;
 
 		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
 		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
@@ -69,64 +65,50 @@ class SpecialCaseReviews extends SpecialPage {
 		$html .= "<div class='car-roll'>";
 
 
-		foreach($days as $decisionDate => $cars){
+		foreach($days as $key => $cars){
 
-			$params = $this->preProcess($decisionDate, $cars);
+			$params = $this->preprocess($key, $cars);
 
-			$params["subjectHTML"] = View::renderTemplate($subjectTemplate, $params);
+			$params["subjectsHTML"] = View::renderTemplate($subjectTemplate, $params);
 
 			$html .= View::renderTemplate($summaryTemplate, $params);
 		}
 
-		// Closing containser tags
+		// Closing container tags
 		$html .= "</div></div>";
 
 		return $html;
 	}
 
-	public function preProcess($decisionDate, $cars){
+	public function preprocess($key, $cars){
 
-		global $wgOcdlaAppCarSummaryURL, $wgOcdlaCaseReviewAuthor, $wgScriptPath;
+		global $wgOcdlaAppDomain, $wgOcdlaCaseReviewAuthor;
 
-		$year = $cars[0]["year"];
-		$month = $cars[0]["month"];
-		$day = $cars[0]["day"];
-		$court = $cars[0]["court"];
-		$title = "$court, $decisionDate";
-		$subjects = $this->getSubjects($cars);
+		list($year, $month, $day, $court) = explode("-", $key);
+
+		$titleDate = new DateTime("$year-$month-$day");
+		$titleDate = $titleDate->format("F jS, Y");
+
+		$title = "$court, $titleDate";
 
 		// Build the published date.
 		$publishDate = $cars[0]["createtime"];
 		$publishDate = new DateTime($publishDate);
-		$publishDate = $publishDate->format("l, F jS, Y");
-
-		// Build the url for the comments page.
-		$resource = str_replace(" ", "_", $title);
-		$commentsURL = "$wgScriptPath/Blog_talk:Case_Reviews/$resource";
+		$publishDate = $publishDate->format("F jS, Y");
 
 
 		$data = array(
-			"firstSubject" => array_shift($subjects),
-			"subjects"	   => $subjects,
 			"title"		   => $title,
-			"author"	   => $wgOcdlaCaseReviewAuthor,
-			"commentsURL"  => $commentsURL,
 			"publishDate"  => $publishDate,
-			"appURL"	   => "$wgOcdlaAppCarSummaryURL?year=$year&month=$month&day=$day&court=$court&summarize=1"
+			"author"	   => $wgOcdlaCaseReviewAuthor,
+			"year"		   => $year,
+			"month"		   => $month,
+			"day"		   => $day,
+			"court"		   => $court,
+			"appDomain"	   => $wgOcdlaAppDomain,
+			"cars"		   => $cars
 		);
 
 		return $data;
-	}
-
-	public function getSubjects($cars){
-
-		$subjects = array();
-
-		foreach($cars as $car){
-
-			$subjects[] = $car["subject_1"] ." - ". $car["subject_2"];
-		}
-
-		return $subjects;
 	}
 }
