@@ -38,7 +38,7 @@ class SpecialCaseReviews extends SpecialPage {
 
 
 	public function group($cars){
-
+		
 		$days = array();
 
 		// Assumes results are already sorted DESC by year, month, and day, so array will start with most recent cars.
