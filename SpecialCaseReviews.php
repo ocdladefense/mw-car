@@ -63,6 +63,7 @@ class SpecialCaseReviews extends SpecialPage {
 
 		global $wgScriptPath, $wgOcdlaCaseReviewAuthor;
 
+		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
 		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
 		
 		// Opening container tags
@@ -72,16 +73,12 @@ class SpecialCaseReviews extends SpecialPage {
 
 		foreach($days as $title => $cars){
 
-			$data = $this->preProcess($title, $cars);
+			$params = $this->preProcess($title, $cars);
 
-			var_dump($data);exit;
+			$subjects = $this->renderTemplate($subjectTemplate, $params);
 
-			$html .= renderTemplate($summaryTemplate, $data);
+			var_dump($subjects);exit;
 		}
-
-
-
-		return \Ocdla\View::renderTemplate($template, $params);
 
 
 		// Closing containser tags
@@ -92,18 +89,17 @@ class SpecialCaseReviews extends SpecialPage {
 
 	public function preProcess($title, $cars){
 
-		$data = array();
+		$subjects = $this->getSubjects($cars);
 
-		$data["subjects"] = $this->getSubjects($cars);
- 
-		$data["firstSubject"] = array_shift($data["subjects"]);
+		$data = array(
+			"firstSubject" => array_shift($data["subjects"]),
+			"subjects"	   => $subjects
+		);
 
 		return $data;
 	}
 
 	public function getSubjects($cars){
-
-		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
 
 		$subjects = array();
 
@@ -114,4 +110,20 @@ class SpecialCaseReviews extends SpecialPage {
 
 		return $subjects;
 	}
+
+	public function renderTemplate($template, $params) {
+
+		extract($params);
+
+		ob_start();
+
+		require $template;
+		
+		$content = ob_get_contents();
+
+		ob_end_clean();
+		
+		return $content;
+	}
+
 }

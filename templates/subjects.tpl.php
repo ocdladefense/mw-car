@@ -7,9 +7,7 @@
     */
 ?>
 
-
-
 <div class="car-subjects">
-    <p><?php print $firstSubject; ?></p>
+    <p><?php print $datafirstSubject; ?></p>
     <p><?php print implode(", ", $subjects); ?></p>
 </div>
