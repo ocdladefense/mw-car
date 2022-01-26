@@ -21,11 +21,18 @@ class SpecialCaseReviews extends SpecialPage {
 
     public function execute($numRows) {
 
-		global $wgOut;
+		global $wgDBserver, $wgDBuser, $wgDBpassword, $wgDBname, $wgOut;
 
 		$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
-		$cars = select($query);
+		$dbCredentials = array(
+			"host"       =>  $wgDBserver,
+			"user"  	 =>  $wgDBuser,
+			"password"   =>  $wgDBpassword,
+			"name"       =>  $wgDBname
+		);
+
+		$cars = select($query, $dbCredentials);
 
 		$days = $this->group($cars);
 

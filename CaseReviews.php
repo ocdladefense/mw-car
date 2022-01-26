@@ -2,13 +2,6 @@
 
 if (!defined("MEDIAWIKI")) die();
 
-global $wgDBserver, $wgDBuser, $wgDBpassword, $wgDBname;
-
-define("DB_HOST", $wgDBserver);
-define("DB_USER", $wgDBuser);
-define("DB_PASS", $wgDBpassword);
-define("DB_NAME", $wgDBname);
-
 // White list the special page, so it is public.
 $wgWhitelistRead[] = "Special:CaseReviews";
 
