@@ -1,6 +1,8 @@
 <?php
 
 use function Mysql\select;
+use Mysql\Database;
+
 use Ocdla\View;
 
 
@@ -11,28 +13,41 @@ class SpecialCaseReviews extends SpecialPage {
 	
     public function __construct() {
 
+		global $wgCaseReviewsDBtype;
+		global $wgCaseReviewsDBserver;
+		global $wgCaseReviewsDBname;
+		global $wgCaseReviewsDBuser;
+		global $wgCaseReviewsDBpassword;
+
         parent::__construct("CaseReviews");
 
 		$this->getOutput()->addModules("ext.caseReviews");
 
 		$this->mIncludable = true;
+
+		$dbCredentials = array(
+			"host"       =>  $wgCaseReviewsDBserver,
+			"user"  	 =>  $wgCaseReviewsDBuser,
+			"password"   =>  $wgCaseReviewsDBpassword,
+			"name"       =>  $wgCaseReviewsDBname,
+		);
+
+
+		Database::setDefault($dbCredentials);		
     }
+
+
 
 
     public function execute($numRows) {
 
-		global $wgDBserver, $wgDBuser, $wgDBpassword, $wgDBname, $wgOut;
+		$wgOut = $this->getOutput();
+
 
 		$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
-		$dbCredentials = array(
-			"host"       =>  $wgDBserver,
-			"user"  	 =>  $wgDBuser,
-			"password"   =>  $wgDBpassword,
-			"name"       =>  $wgDBname
-		);
 
-		$cars = select($query, $dbCredentials);
+		$cars = select($query);
 
 		$days = $this->group($cars);
 
@@ -43,6 +58,8 @@ class SpecialCaseReviews extends SpecialPage {
     }
 
 
+
+	
 	public function group($cars){
 		
 		$days = array();
