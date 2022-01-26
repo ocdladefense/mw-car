@@ -85,16 +85,24 @@ class SpecialCaseReviews extends SpecialPage {
 		global $wgOcdlaAppDomain, $wgOcdlaCaseReviewAuthor;
 
 		list($year, $month, $day, $court) = explode("-", $key);
+		
 
+		// Doing this for the title only.  Don't want to change the value of "$court".
+		$titleCourt = !empty($court) ? $court : "Case Reviews";
 		$titleDate = new DateTime("$year-$month-$day");
 		$titleDate = $titleDate->format("F jS, Y");
 
-		$title = "$court, $titleDate";
+		$title = "$titleCourt, $titleDate";
 
-		// Build the published date.
-		$publishDate = $cars[0]["createtime"];
-		$publishDate = new DateTime($publishDate);
-		$publishDate = $publishDate->format("F jS, Y");
+		// Build the published date, but only if the create time is a valid timestamp.
+		if($this->timestampIsValid($cars[0]["createtime"])){
+
+			$publishDate = $cars[0]["createtime"];
+			$publishDate = new DateTime($publishDate);
+			$publishDate = $publishDate->format("F jS, Y");
+		}
+
+
 
 
 		$data = array(
@@ -110,5 +118,12 @@ class SpecialCaseReviews extends SpecialPage {
 		);
 
 		return $data;
+	}
+
+	public function timestampIsValid($timestamp){
+
+		$year = (int) explode("-", $timestamp)[0];
+
+		return $year > 2000;
 	}
 }
