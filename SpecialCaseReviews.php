@@ -1,48 +1,69 @@
 <?php
 
 use function Mysql\select;
+use Mysql\Database;
+use Mysql\DbHelper;
+
 use Ocdla\View;
 
 
 class SpecialCaseReviews extends SpecialPage {
 
-	private $numRows;
-
 	
     public function __construct() {
+
+		global $wgCaseReviewsDBtype;
+		global $wgCaseReviewsDBserver;
+		global $wgCaseReviewsDBname;
+		global $wgCaseReviewsDBuser;
+		global $wgCaseReviewsDBpassword;
 
         parent::__construct("CaseReviews");
 
 		$this->getOutput()->addModules("ext.caseReviews");
 
 		$this->mIncludable = true;
+
+		$dbCredentials = array(
+			"host"       =>  $wgCaseReviewsDBserver,
+			"user"  	 =>  $wgCaseReviewsDBuser,
+			"password"   =>  $wgCaseReviewsDBpassword,
+			"name"       =>  $wgCaseReviewsDBname,
+		);
+
+
+		Database::setDefault($dbCredentials);		
     }
+
+
 
 
     public function execute($numRows) {
 
-		global $wgDBserver, $wgDBuser, $wgDBpassword, $wgDBname, $wgOut;
+		global $wgOcdlaCaseReviewsDefaultRecordLimit;
+
+		$output = $this->getOutput();
+
+		if(!$this->including()) {
+
+			$numRows = !empty($wgOcdlaCaseReviewsDefaultRecordLimit) ? $wgOcdlaCaseReviewsDefaultRecordLimit : 500;
+		}
 
 		$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
-		$dbCredentials = array(
-			"host"       =>  $wgDBserver,
-			"user"  	 =>  $wgDBuser,
-			"password"   =>  $wgDBpassword,
-			"name"       =>  $wgDBname
-		);
 
-		$cars = select($query, $dbCredentials);
+		$cars = select($query);
 
 		$days = $this->group($cars);
 
 		$html = $this->getHTML($days);
 
-		// The syntax for this will be "$this->getOutput()" in later MediaWiki versions.
-		$wgOut->addHTML($html);
+		$output->addHTML($html);
     }
 
 
+
+	
 	public function group($cars){
 		
 		$days = array();
@@ -65,7 +86,8 @@ class SpecialCaseReviews extends SpecialPage {
 		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
 		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
 
-		$html = "";
+		// If the page is being rendered as a standalone page, add the additional html.
+		$html = !$this->including() ? $this->getSummaryLinksHTML() : "";
 		
 		// Opening container tags
 		$html .= "<div class='car-wrapper'>";
@@ -126,6 +148,39 @@ class SpecialCaseReviews extends SpecialPage {
 
 		return $data;
 	}
+
+
+	public function getSummaryLinksHTML(){
+
+		global $wgServer, $wgOcdlaAppDomain;
+
+		$template = __DIR__ . "/templates/summary-links.tpl.php";
+
+		$years = DbHelper::getDistinctFieldValues("car", "year");
+
+
+		// These are the links to case reviews that are not available in the app.
+		$legacyLinks = array(
+			"2015"	=>  "$wgServer/2015_Case_Summaries_by_Topic",
+			"2016"	=>  "$wgServer/2016_Case_Summaries_by_Topic",
+			"2017"	=>  "$wgServer/2017_Case_Summaries_by_Topic"
+
+		);
+
+
+		// These are the links to summaries in the app.
+		$appLinks = array();
+
+		foreach($years as $year) {
+			
+			$appLinks[$year] = "$wgOcdlaAppDomain/car/list?year=$year&summarize=1";
+		}
+
+		$allSummaryLinks = $legacyLinks + $appLinks;
+
+		return View::renderTemplate($template, array("allSummaryLinks" => array_reverse($allSummaryLinks, true)));
+	}
+
 
 	public function timestampIsValid($timestamp){
 
