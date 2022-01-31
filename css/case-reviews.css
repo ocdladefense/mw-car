@@ -8,6 +8,7 @@ div.car-summary-header {
 	font-style: italic;
 }
 
-br {
-	display:none;
+.summary-link {
+
+	display: block;
 }
