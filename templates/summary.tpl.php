@@ -1,5 +1,6 @@
 <?php
     // Represents a single day/court summary for listing on LOD homepage.
+    $showMeta = false;
 ?>
 
 
@@ -12,14 +13,9 @@
     </h2>
     <div class="car-summary-header">
         <p>
-            <?php
-                $summaryHeader = "";
-                if(!empty($author)) $summaryHeader .= "by: $author";
-                if(!empty($author) && !empty($publishDate)) $summaryHeader .= " &#8226; ";
-                if(!empty($publishDate)) $summaryHeader .= "$publishDate";
-
-                print $summaryHeader;
-            ?>
+            <?php if($author): ?>
+                by: <?php print $author; ?>
+            <?php endif; ?>
         </p>
     </div>
 
