@@ -1,8 +1,13 @@
 <h1>OCDLA Library of Defense - Case Reviews</h1>
 
+<div>
+    <ul class="links-list">
 
-<?php foreach($allSummaryLinks as $year => $url) : ?>
+        <?php foreach($allSummaryLinks as $year => $url) : ?>
 
-    <a href="<?php print $url; ?>"><?php print $year; ?> Case Summaries by Topic</a></br>
+            <li><a href="<?php print $url; ?>"><?php print $year; ?> Case Summaries by Topic</a></li>
 
-<?php endforeach; ?>
+        <?php endforeach; ?>
+
+    </ul>
+</div>
