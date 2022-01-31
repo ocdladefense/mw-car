@@ -3,9 +3,6 @@
 namespace Ocdla;
 
 
-if ( !defined( 'MEDIAWIKI' ) )
-	die();
-
 	
 class View {
 
@@ -15,12 +12,12 @@ class View {
 		extract($vars);
 
 		ob_start();
-
 		require $path;
-		$content = ob_get_contents(); // get contents of buffer
+		$content = trim(ob_get_contents()); // get contents of buffer
+		
 		ob_end_clean();
 
-		return $content;
+		return str_replace(array("\r", "\n"), '', $content);
 	}
 
 

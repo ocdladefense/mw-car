@@ -9,20 +9,10 @@
 
 <div class="car-subjects">
 
-    <p>
-
-        <?php
-            $subjects = array();
-            
-            foreach($cars as $car) {
-                
-                $subject = strtoupper($car["subject_1"]) . " - " . $car["subject_2"];
-                $subjects[] = $subject;
-            }
-
-            print implode(",",$subjects);
-        ?>
-
-    </p>
+    <?php foreach($cars as $car): ?>
+        <p class="car-subject">
+            <?php print strtoupper($car["subject_1"]); ?> - <?php print $car["subject_2"]; ?>
+        </p>
+    <?php endforeach; ?>
 
 </div>

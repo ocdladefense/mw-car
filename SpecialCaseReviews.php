@@ -116,8 +116,10 @@ class SpecialCaseReviews extends SpecialPage {
 		// Closing container tags
 		$html .= "</div></div>";
 
-		return $html;
+		return str_replace(array("\r", "\n"), '', $html);
 	}
+
+
 
 	public function preprocess($key, $cars){
 
