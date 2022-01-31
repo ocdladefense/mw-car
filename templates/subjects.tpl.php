@@ -12,11 +12,15 @@
     <p>
 
         <?php
-            $subjects = "";
+            $subjects = array();
             
-            foreach($cars as $car) $subjects .= strtoupper($car["subject_1"]) . " - " . $car["subject_2"] . ", ";
+            foreach($cars as $car) {
+                
+                $subject = strtoupper($car["subject_1"]) . " - " . $car["subject_2"];
+                $subjects[] = $subject;
+            }
 
-            print trim($subjects, ", ");
+            print implode(",",$subjects);
         ?>
 
     </p>
