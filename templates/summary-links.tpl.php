@@ -3,11 +3,10 @@
 <div>
     <ul class="links-list">
 
-        <?php foreach($allSummaryLinks as $year => $url) : ?>
-
-            <li><a href="<?php print $url; ?>"><?php print $year; ?> Case Summaries by Topic</a></li>
-
-        <?php endforeach; ?>
-
-    </ul>
-</div>
+<ul>
+    <?php foreach($allSummaryLinks as $year => $url) : ?>
+        <li class="summary-link">
+            <a href="<?php print $url; ?>"><?php print $year; ?> Case Summaries by Topic</a>
+        </li>
+    <?php endforeach; ?>
+</ul>

@@ -38,9 +38,13 @@ class SpecialCaseReviews extends SpecialPage {
 
 
 
-    public function execute($numRows) {
+    public function execute($params) {
 
 		global $wgOcdlaCaseReviewsDefaultRecordLimit;
+
+		$params = empty($params) ? "50" : $params;
+
+		list($numRows, $field, $value) = explode("/", $params);
 
 		$output = $this->getOutput();
 
@@ -49,7 +53,13 @@ class SpecialCaseReviews extends SpecialPage {
 			$numRows = !empty($wgOcdlaCaseReviewsDefaultRecordLimit) ? $wgOcdlaCaseReviewsDefaultRecordLimit : 500;
 		}
 
+		// Define a subject query, too.
 		$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+
+
+		if(null != $value && null != $field) {
+			$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+		}
 
 
 		$cars = select($query);
