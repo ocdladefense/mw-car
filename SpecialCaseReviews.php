@@ -54,11 +54,11 @@ class SpecialCaseReviews extends SpecialPage {
 		}
 
 		// Define a subject query, too.
-		$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+		$query = "SELECT court, year, month, day, published_date, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 
 		if(null != $value && null != $field) {
-			$query = "SELECT court, year, month, day, createtime, subject_1, subject_2 FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+			$query = "SELECT court, year, month, day, published_date, subject_1, subject_2 FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 		}
 
 
@@ -136,9 +136,9 @@ class SpecialCaseReviews extends SpecialPage {
 		$title = "$titleCourt, $titleDate";
 
 		// Build the published date, but only if the create time is a valid timestamp.
-		if($this->timestampIsValid($cars[0]["createtime"])){
+		if($this->timestampIsValid($cars[0]["published_date"])){
 
-			$publishDate = $cars[0]["createtime"];
+			$publishDate = $cars[0]["published_date"];
 			$publishDate = new DateTime($publishDate);
 			$publishDate = $publishDate->format("F jS, Y");
 		}
