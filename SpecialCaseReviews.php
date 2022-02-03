@@ -8,7 +8,6 @@ use Ocdla\View;
 
 
 class SpecialCaseReviews extends SpecialPage {
-
 	
     public function __construct() {
 
@@ -46,6 +45,8 @@ class SpecialCaseReviews extends SpecialPage {
 
 		list($numRows, $field, $value) = explode("/", $params);
 
+		$isUsingAlternateTemplate = (!empty($value) && !empty($field));
+
 		$output = $this->getOutput();
 
 		if(!$this->including()) {
@@ -57,8 +58,9 @@ class SpecialCaseReviews extends SpecialPage {
 		$query = "SELECT court, year, month, day, published_date, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 
-		if(null != $value && null != $field) {
-			$query = "SELECT court, year, month, day, published_date, subject_1, subject_2 FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+		if($isUsingAlternateTemplate) {
+
+			$query = "SELECT year, month, day, summary, title FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 		}
 
 
@@ -66,7 +68,12 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$days = $this->group($cars);
 
-		$html = $this->getHTML($days);
+		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
+		$alternateSummaryTemplate = __DIR__ . "/templates/alternate-summary.tpl.php";
+
+		$primaryTemplate = $isUsingAlternateTemplate ? $alternateSummaryTemplate : $summaryTemplate;
+
+		$html = $this->getHTML($days, $primaryTemplate);
 
 		$output->addHTML($html);
     }
@@ -91,10 +98,9 @@ class SpecialCaseReviews extends SpecialPage {
 	}
 
 
-	public function getHTML($days) {
+	public function getHTML($days, $summaryTemplate) {
 
 		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
-		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
 
 		// If the page is being rendered as a standalone page, add the additional html.
 		$html = !$this->including() ? $this->getSummaryLinksHTML() : "";
@@ -105,6 +111,8 @@ class SpecialCaseReviews extends SpecialPage {
 
 
 		foreach($days as $key => $cars){
+
+			$params["cars"] = $cars;
 
 			$params = $this->preprocess($key, $cars);
 
