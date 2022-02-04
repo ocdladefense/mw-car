@@ -8,7 +8,6 @@ use Ocdla\View;
 
 
 class SpecialCaseReviews extends SpecialPage {
-
 	
     public function __construct() {
 
@@ -46,7 +45,11 @@ class SpecialCaseReviews extends SpecialPage {
 
 		list($numRows, $field, $value) = explode("/", $params);
 
+		$useAlternateTemplate = (!empty($value) && !empty($field));
+
 		$output = $this->getOutput();
+
+		$template = __DIR__ . "/templates/summary.tpl.php";
 
 		if(!$this->including()) {
 
@@ -57,8 +60,11 @@ class SpecialCaseReviews extends SpecialPage {
 		$query = "SELECT court, year, month, day, published_date, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 
-		if(null != $value && null != $field) {
-			$query = "SELECT court, year, month, day, published_date, subject_1, subject_2 FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+		if($useAlternateTemplate) {
+
+			$query = "SELECT id, year, month, day, summary, subject_1, title FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+
+			$template = __DIR__ . "/templates/alternate-summary.tpl.php";
 		}
 
 
@@ -66,7 +72,7 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$days = $this->group($cars);
 
-		$html = $this->getHTML($days);
+		$html = $useAlternateTemplate ? $this->getAlternateHTML($cars, $template) : $this->getHTML($days, $template);
 
 		$output->addHTML($html);
     }
@@ -91,10 +97,9 @@ class SpecialCaseReviews extends SpecialPage {
 	}
 
 
-	public function getHTML($days) {
+	public function getHTML($days, $summaryTemplate) {
 
 		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
-		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
 
 		// If the page is being rendered as a standalone page, add the additional html.
 		$html = !$this->including() ? $this->getSummaryLinksHTML() : "";
@@ -106,11 +111,49 @@ class SpecialCaseReviews extends SpecialPage {
 
 		foreach($days as $key => $cars){
 
+			$params["cars"] = $cars;
+
 			$params = $this->preprocess($key, $cars);
 
 			$params["subjectsHTML"] = View::renderTemplate($subjectTemplate, $params);
 
 			$html .= View::renderTemplate($summaryTemplate, $params);
+		}
+
+		// Closing container tags
+		$html .= "</div></div>";
+
+		return str_replace(array("\r", "\n"), '', $html);
+	}
+
+
+	public function getAlternateHTML($cars, $template) {
+
+		global $wgOcdlaAppDomain;
+
+		$subject = $cars[0]["subject_1"];
+
+		$html = "<h5>Showing " . ucwords($cars[0]["subject_1"]) . " Case Reviews</h5>";
+		$html .= "<a href='$wgOcdlaAppDomain/car/list?subject_1=$subject'>Show all $subject case reviews</a>";
+		
+		// Opening container tags
+		$html .= "<div class='car-wrapper'>";
+		$html .= "<div class='car-roll'>";
+
+
+		foreach($cars as $car){
+
+			$year = $car["year"];
+			$month = $car["month"];
+			$day = $car["day"];
+
+			$titleDate = new DateTime("$year-$month-$day");
+			$titleDate = $titleDate->format("F jS, Y");
+
+			$car["titleDate"] = $titleDate;
+			$car["appDomain"] = $wgOcdlaAppDomain;
+
+			$html .= View::renderTemplate($template, $car);
 		}
 
 		// Closing container tags
@@ -148,6 +191,7 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$data = array(
 			"title"		   => $title,
+			"titleDate"    => $titleDate,
 			"publishDate"  => $publishDate,
 			"author"	   => $wgOcdlaCaseReviewAuthor,
 			"year"		   => $year,
