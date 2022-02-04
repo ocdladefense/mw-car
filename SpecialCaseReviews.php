@@ -45,9 +45,11 @@ class SpecialCaseReviews extends SpecialPage {
 
 		list($numRows, $field, $value) = explode("/", $params);
 
-		$isUsingAlternateTemplate = (!empty($value) && !empty($field));
+		$useAlternateTemplate = (!empty($value) && !empty($field));
 
 		$output = $this->getOutput();
+
+		$template = __DIR__ . "/templates/summary.tpl.php";
 
 		if(!$this->including()) {
 
@@ -58,9 +60,11 @@ class SpecialCaseReviews extends SpecialPage {
 		$query = "SELECT court, year, month, day, published_date, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 
-		if($isUsingAlternateTemplate) {
+		if($useAlternateTemplate) {
 
-			$query = "SELECT year, month, day, summary, title FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+			$query = "SELECT id, year, month, day, summary, subject_1, title FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+
+			$template = __DIR__ . "/templates/alternate-summary.tpl.php";
 		}
 
 
@@ -68,12 +72,7 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$days = $this->group($cars);
 
-		$summaryTemplate = __DIR__ . "/templates/summary.tpl.php";
-		$alternateSummaryTemplate = __DIR__ . "/templates/alternate-summary.tpl.php";
-
-		$primaryTemplate = $isUsingAlternateTemplate ? $alternateSummaryTemplate : $summaryTemplate;
-
-		$html = $this->getHTML($days, $primaryTemplate);
+		$html = $useAlternateTemplate ? $this->getAlternateHTML($cars, $template) : $this->getHTML($days, $template);
 
 		$output->addHTML($html);
     }
@@ -128,6 +127,46 @@ class SpecialCaseReviews extends SpecialPage {
 	}
 
 
+	public function getAlternateHTML($cars, $template) {
+
+		global $wgOcdlaAppDomain;
+
+		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
+
+		$subject = $cars[0]["subject_1"];
+
+
+		$html = "<h5>Showing " . ucwords($cars[0]["subject_1"]) . " Case Reviews</h5>";
+
+		$html .= "<a href='$wgOcdlaAppDomain/car/list?subject_1=$subject'>Show all $subject case reviews</a>";
+		
+		// Opening container tags
+		$html .= "<div class='car-wrapper'>";
+		$html .= "<div class='car-roll'>";
+
+
+		foreach($cars as $car){
+
+			$year = $car["year"];
+			$month = $car["month"];
+			$day = $car["day"];
+
+			$titleDate = new DateTime("$year-$month-$day");
+			$titleDate = $titleDate->format("F jS, Y");
+
+			$car["titleDate"] = $titleDate;
+			$car["appDomain"] = $wgOcdlaAppDomain;
+
+			$html .= View::renderTemplate($template, $car);
+		}
+
+		// Closing container tags
+		$html .= "</div></div>";
+
+		return str_replace(array("\r", "\n"), '', $html);
+	}
+
+
 
 	public function preprocess($key, $cars){
 
@@ -156,6 +195,7 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$data = array(
 			"title"		   => $title,
+			"titleDate"    => $titleDate,
 			"publishDate"  => $publishDate,
 			"author"	   => $wgOcdlaCaseReviewAuthor,
 			"year"		   => $year,
