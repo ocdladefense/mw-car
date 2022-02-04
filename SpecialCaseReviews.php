@@ -131,13 +131,9 @@ class SpecialCaseReviews extends SpecialPage {
 
 		global $wgOcdlaAppDomain;
 
-		$subjectTemplate = __DIR__ . "/templates/subjects.tpl.php";
-
 		$subject = $cars[0]["subject_1"];
 
-
 		$html = "<h5>Showing " . ucwords($cars[0]["subject_1"]) . " Case Reviews</h5>";
-
 		$html .= "<a href='$wgOcdlaAppDomain/car/list?subject_1=$subject'>Show all $subject case reviews</a>";
 		
 		// Opening container tags
