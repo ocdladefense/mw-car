@@ -57,12 +57,12 @@ class SpecialCaseReviews extends SpecialPage {
 		}
 
 		// Define a subject query, too.
-		$query = "SELECT court, year, month, day, published_date, subject_1, subject_2 FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+		$query = "SELECT court, year, month, day, published_date, subject, secondary_subject FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 
 		if($useAlternateTemplate) {
 
-			$query = "SELECT id, year, month, day, summary, subject_1, title FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+			$query = "SELECT id, year, month, day, summary, subject, title FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 			$template = __DIR__ . "/templates/alternate-summary.tpl.php";
 		}
@@ -131,10 +131,10 @@ class SpecialCaseReviews extends SpecialPage {
 
 		global $wgOcdlaAppDomain;
 
-		$subject = $cars[0]["subject_1"];
+		$subject = $cars[0]["subject"];
 
-		$html = "<h5>Showing " . ucwords($cars[0]["subject_1"]) . " Case Reviews</h5>";
-		$html .= "<a href='$wgOcdlaAppDomain/car/list?subject_1=$subject'>Show all $subject case reviews</a>";
+		$html = "<h5>Showing " . ucwords($cars[0]["subject"]) . " Case Reviews</h5>";
+		$html .= "<a href='$wgOcdlaAppDomain/car/list?subject=$subject'>Show all $subject case reviews</a>";
 		
 		// Opening container tags
 		$html .= "<div class='car-wrapper'>";

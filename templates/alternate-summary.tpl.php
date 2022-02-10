@@ -1,7 +1,7 @@
 <?php
     // Represents a single day/court summary for listing on LOD homepage.
     $showMeta = false;
-    $subject = ucwords($subject_1);
+    $subject = ucwords($subject);
 
 ?>
 

@@ -3,7 +3,7 @@
 
     /** template subjects.tpl.php 
      * 
-     * Rendering the subject_1 and subject_2 for all cases in a day's worth of reviews. 
+     * Rendering the subject and secondary_subject for all cases in a day's worth of reviews. 
     */
 ?>
 
@@ -11,7 +11,7 @@
 
     <?php foreach($cars as $car): ?>
         <p class="car-subject">
-            <?php print strtoupper($car["subject_1"]); ?> - <?php print $car["subject_2"]; ?>
+            <?php print strtoupper($car["subject"]); ?> - <?php print $car["secondary_subject"]; ?>
         </p>
     <?php endforeach; ?>
 
