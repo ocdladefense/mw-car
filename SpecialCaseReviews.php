@@ -64,8 +64,6 @@ class SpecialCaseReviews extends SpecialPage {
 
 			$query = "SELECT id, year, month, day, summary, subject, title FROM car WHERE is_draft != 1 AND {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
-			print $query; exit;
-
 			$template = __DIR__ . "/templates/alternate-summary.tpl.php";
 		}
 
