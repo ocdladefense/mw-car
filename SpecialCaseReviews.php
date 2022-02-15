@@ -57,12 +57,12 @@ class SpecialCaseReviews extends SpecialPage {
 		}
 
 		// Define a subject query, too.
-		$query = "SELECT court, year, month, day, published_date, subject, secondary_subject FROM car ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+		$query = "SELECT court, year, month, day, published_date, subject, secondary_subject FROM car WHERE is_draft != 1 ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 
 		if($useAlternateTemplate) {
 
-			$query = "SELECT id, year, month, day, summary, subject, title FROM car WHERE {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
+			$query = "SELECT id, year, month, day, summary, subject, title FROM car WHERE WHERE is_draft != 1 AND {$field} = '{$value}' ORDER BY year DESC, month DESC, day DESC LIMIT {$numRows}";
 
 			$template = __DIR__ . "/templates/alternate-summary.tpl.php";
 		}
