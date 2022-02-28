@@ -6,7 +6,7 @@ use function Mysql\select;
 use Mysql\Database;
 use Mysql\DbHelper;
 
-use Ocdla\View;
+use Ocdla\Template;
 
 
 class SpecialCaseReviews extends SpecialPage {
@@ -46,7 +46,8 @@ class SpecialCaseReviews extends SpecialPage {
 		$params = empty($params) ? "50" : $params;
 
 		list($numRows, $field, $value) = explode("/", $params);
-
+		$field = "subject_1" == $field ? "subject" : $field;
+		
 		$useAlternateTemplate = (!empty($value) && !empty($field));
 
 		$output = $this->getOutput();
@@ -117,9 +118,9 @@ class SpecialCaseReviews extends SpecialPage {
 
 			$params = $this->preprocess($key, $cars);
 
-			$params["subjectsHTML"] = View::renderTemplate($subjectTemplate, $params);
+			$params["subjectsHTML"] = Template::renderTemplate($subjectTemplate, $params);
 
-			$html .= View::renderTemplate($summaryTemplate, $params);
+			$html .= Template::renderTemplate($summaryTemplate, $params);
 		}
 
 		// Closing container tags
@@ -155,7 +156,7 @@ class SpecialCaseReviews extends SpecialPage {
 			$car["titleDate"] = $titleDate;
 			$car["appDomain"] = $wgOcdlaAppDomain;
 
-			$html .= View::renderTemplate($template, $car);
+			$html .= Template::renderTemplate($template, $car);
 		}
 
 		// Closing container tags
@@ -236,7 +237,7 @@ class SpecialCaseReviews extends SpecialPage {
 
 		$allSummaryLinks = $legacyLinks + $appLinks;
 
-		return View::renderTemplate($template, array("allSummaryLinks" => array_reverse($allSummaryLinks, true)));
+		return Template::renderTemplate($template, array("allSummaryLinks" => array_reverse($allSummaryLinks, true)));
 	}
 
 
