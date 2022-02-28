@@ -46,7 +46,8 @@ class SpecialCaseReviews extends SpecialPage {
 		$params = empty($params) ? "50" : $params;
 
 		list($numRows, $field, $value) = explode("/", $params);
-
+		$field = "subject_1" == $field ? "subject" : $field;
+		
 		$useAlternateTemplate = (!empty($value) && !empty($field));
 
 		$output = $this->getOutput();
