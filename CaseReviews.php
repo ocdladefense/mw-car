@@ -8,7 +8,6 @@ $wgWhitelistRead[] = "Special:CaseReviews";
 
 # Autoload classes and files
 $wgAutoloadClasses["SpecialCaseReviews"] = __DIR__ . "/SpecialCaseReviews.php";
-$wgAutoloadClasses["View"] = __DIR__ . "/src/View.php";
 
 
 # Tell MediaWiki about the new special page and its class name
