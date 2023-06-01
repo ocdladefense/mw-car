@@ -5,7 +5,6 @@
 use function Mysql\select;
 use Mysql\Database;
 use Mysql\DbHelper;
-
 use Ocdla\Template;
 
 
